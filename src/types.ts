@@ -10,6 +10,7 @@ export interface User {
   color: string;
   role: string;
   city: string;
+  address: string;
   rating: number;
   ratingCount: number;
   badges: Badge[];

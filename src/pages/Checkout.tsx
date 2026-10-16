@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, Loader2, Lock, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -15,10 +15,19 @@ export default function Checkout() {
   const me = useStore((s) => s.users[s.currentUserId]);
   const topUp = useStore((s) => s.topUp);
   const show = useToast((s) => s.show);
-  const [address, setAddress] = useState(`${me.city}, `);
+  const [address, setAddress] = useState(me.address);
   const [phase, setPhase] = useState<'form' | 'paying' | 'done'>('form');
   const [orderId, setOrderId] = useState('');
   const [err, setErr] = useState('');
+
+  // Switching accounts mid-checkout: the seller can't buy their own item (back to the item page);
+  // any other user gets their own saved address.
+  useEffect(() => {
+    if (phase !== 'form') return;
+    if (item && item.sellerId === me.id) { nav(`/item/${item.id}`, { replace: true }); return; }
+    setAddress(me.address);
+    setErr('');
+  }, [me.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (phase === 'done') {
     return (
@@ -37,7 +46,7 @@ export default function Checkout() {
   const own = item.sellerId === me.id;
   const unavailable = item.status !== 'active';
   const short = me.wallet.available < t.total;
-  const addrOk = address.trim().length >= me.city.length + 4;
+  const addrOk = address.trim().length >= 6;
   const blocked = own || unavailable;
 
   const pay = () => {

@@ -16,9 +16,9 @@ const HOUR = 3600_000;
 export function createSeed(): AppData {
   const now = Date.now();
   const users: AppData['users'] = {
-    noa: { id: 'noa', name: 'נועה', avatar: '🧑‍🎤', color: '#5B8A72', role: 'קונה', city: 'תל אביב', rating: 4.9, ratingCount: 21, badges: [], wallet: { available: 800, pending: 0 } },
-    dani: { id: 'dani', name: 'דני', avatar: '🧔', color: '#2563EB', role: 'מוכר', city: 'חיפה', rating: 4.7, ratingCount: 38, badges: ['verified', 'fast_shipper'], wallet: { available: 150, pending: 120 } },
-    maya: { id: 'maya', name: 'מאיה', avatar: '👩‍🦰', color: '#DB2777', role: 'מוכרת', city: 'ירושלים', rating: 5.0, ratingCount: 64, badges: ['top_seller'], wallet: { available: 300, pending: 0 } },
+    noa: { id: 'noa', address: 'הרצל 12, תל אביב', name: 'נועה', avatar: '🧑‍🎤', color: '#5B8A72', role: 'קונה', city: 'תל אביב', rating: 4.9, ratingCount: 21, badges: [], wallet: { available: 800, pending: 0 } },
+    dani: { id: 'dani', address: 'מוריה 45, חיפה', name: 'דני', avatar: '🧔', color: '#2563EB', role: 'מוכר', city: 'חיפה', rating: 4.7, ratingCount: 38, badges: ['verified', 'fast_shipper'], wallet: { available: 150, pending: 120 } },
+    maya: { id: 'maya', address: 'עמק רפאים 8, ירושלים', name: 'מאיה', avatar: '👩‍🦰', color: '#DB2777', role: 'מוכרת', city: 'ירושלים', rating: 5.0, ratingCount: 64, badges: ['top_seller'], wallet: { available: 300, pending: 0 } },
   };
 
   const mk = (

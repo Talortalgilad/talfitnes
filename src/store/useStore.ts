@@ -23,6 +23,7 @@ interface State extends AppData {
   switchUser: (id: UserId) => void;
   toggleLike: (itemId: string) => void;
   topUp: () => void;
+  listItem: (data: Omit<Item, 'id' | 'sellerId' | 'status' | 'createdAt' | 'likes'>) => string;
   buyItem: (itemId: string, address: string) => { ok: true; orderId: string } | { ok: false; error: string };
   markRead: (id: string) => void;
   markAllRead: () => void;
@@ -52,6 +53,13 @@ export const useStore = create<State>()(
           const tx: Transaction = { id: uid(), userId: u.id, type: 'topup', amount: 500, text: 'טעינת ארנק (מדומה)', at: Date.now() };
           return { users: { ...s.users, [u.id]: { ...u, wallet: { ...u.wallet, available: u.wallet.available + 500 } } }, transactions: [tx, ...s.transactions] };
         }),
+
+      listItem: (data) => {
+        const s = get();
+        const item: Item = { ...data, id: `item-${uid()}`, sellerId: s.currentUserId, status: 'active', createdAt: Date.now(), likes: [] };
+        set({ items: [item, ...s.items] });
+        return item.id;
+      },
 
       buyItem: (itemId, address) => {
         const s = get();
@@ -102,7 +110,7 @@ export const useStore = create<State>()(
       // Corrupt or partial persisted data falls back to the seed.
       merge: (persisted, current) => {
         const p = persisted as Partial<State> | undefined;
-        const ok = p && p.users && p.users.noa && Array.isArray(p.items) && Array.isArray(p.orders) && Array.isArray(p.notifications) && Array.isArray(p.transactions) && p.currentUserId && p.users[p.currentUserId];
+        const ok = p && p.users && p.users.noa && p.users.noa.address && Array.isArray(p.items) && Array.isArray(p.orders) && Array.isArray(p.notifications) && Array.isArray(p.transactions) && p.currentUserId && p.users[p.currentUserId];
         return ok ? { ...current, ...p } : current;
       },
       partialize: (s) => ({ users: s.users, items: s.items, orders: s.orders, notifications: s.notifications, transactions: s.transactions, orderSeq: s.orderSeq, currentUserId: s.currentUserId }) as State,

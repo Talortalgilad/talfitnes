@@ -3,6 +3,7 @@ import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import Toast from './components/Toast';
 import Placeholder from './pages/Placeholder';
+import Sell from './pages/Sell';
 import Home from './pages/Home';
 import Search from './pages/Search';
 import ItemPage from './pages/Item';
@@ -25,7 +26,7 @@ export default function App() {
           <Route path="/search" element={<Search />} />
           <Route path="/item/:id" element={<ItemPage />} />
           <Route path="/checkout/:id" element={<Checkout />} />
-          <Route path="/sell" element={<Placeholder title="מכירה" emoji="➕" />} />
+          <Route path="/sell" element={<Sell />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetail />} />
           <Route path="/wallet" element={<Wallet />} />
