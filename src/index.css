@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body { margin: 0; font-family: 'Heebo', system-ui, sans-serif; color: #1F2937; background: #EEF1EC; }
+button { font-family: inherit; }
+.tap { min-height: 44px; min-width: 44px; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
