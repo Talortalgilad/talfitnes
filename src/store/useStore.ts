@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { Item, Notification, Order, Transaction, UserId } from '../types';
+import type { Item, Notification, Order, OrderStatus, Transaction, UserId } from '../types';
+import { AUTO_RELEASE_MS } from '../lib/status';
 import { createSeed, type AppData } from '../data/seed';
 import { calcTotals } from '../lib/money';
 import { useToast } from '../components/Toast';
@@ -18,6 +19,8 @@ const safeStorage = {
   },
 };
 
+type Res = { ok: true } | { ok: false; error: string };
+
 interface State extends AppData {
   currentUserId: UserId;
   switchUser: (id: UserId) => void;
@@ -25,12 +28,24 @@ interface State extends AppData {
   topUp: () => void;
   listItem: (data: Omit<Item, 'id' | 'sellerId' | 'status' | 'createdAt' | 'likes'>) => string;
   buyItem: (itemId: string, address: string) => { ok: true; orderId: string } | { ok: false; error: string };
+  markShipped: (orderId: string) => Res;
+  markDelivered: (orderId: string) => Res;
+  releasePayment: (orderId: string, auto?: boolean) => Res;
+  openDispute: (orderId: string, d: { reason: string; details: string; photo?: string }) => Res;
+  resolveRefund: (orderId: string) => Res;
+  rateSeller: (orderId: string, stars: number, comment: string) => Res;
   markRead: (id: string) => void;
   markAllRead: () => void;
   resetDemo: () => void;
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10);
+const fail = (error: string): Res => ({ ok: false, error });
+
+const advance = (o: Order, status: OrderStatus, now: number, note?: string, extra: Partial<Order> = {}): Order => ({
+  ...o, ...extra, status, timeline: [...o.timeline, { status, at: now, note }],
+});
+const note = (userId: UserId, text: string, orderId: string, at: number): Notification => ({ id: uid(), userId, text, orderId, read: false, at });
 
 export const useStore = create<State>()(
   persist(
@@ -97,6 +112,123 @@ export const useStore = create<State>()(
           orderSeq: s.orderSeq + 1,
         });
         return { ok: true, orderId: order.id };
+      },
+
+      markShipped: (orderId) => {
+        const s = get();
+        const o = s.orders.find((x) => x.id === orderId);
+        if (!o) return fail('ההזמנה לא נמצאה');
+        if (o.status !== 'paid_escrow') return fail('אי אפשר לסמן כנשלח במצב הנוכחי');
+        if (o.sellerId !== s.currentUserId) return fail('רק המוכר יכול לסמן כנשלח');
+        const now = Date.now();
+        const tracking = `RW${Math.floor(10_000_000 + Math.random() * 90_000_000)}`;
+        const title = s.items.find((i) => i.id === o.itemId)?.title ?? 'הפריט';
+        set({
+          orders: s.orders.map((x) => (x.id === orderId ? advance(x, 'shipped', now, tracking, { trackingNumber: tracking }) : x)),
+          notifications: [note(o.buyerId, `"${title}" נשלח אליך! מספר מעקב ${tracking}`, o.id, now), ...s.notifications],
+        });
+        return { ok: true };
+      },
+
+      markDelivered: (orderId) => {
+        const s = get();
+        const o = s.orders.find((x) => x.id === orderId);
+        if (!o) return fail('ההזמנה לא נמצאה');
+        if (o.status !== 'shipped') return fail('אי אפשר לסמן כהגיע במצב הנוכחי');
+        const now = Date.now();
+        const title = s.items.find((i) => i.id === o.itemId)?.title ?? 'הפריט';
+        set({
+          orders: s.orders.map((x) => (x.id === orderId ? advance(x, 'delivered', now, undefined, { autoReleaseAt: now + AUTO_RELEASE_MS }) : x)),
+          notifications: [
+            note(o.buyerId, `"${title}" הגיע. אשר שהכול תקין כדי לשחרר את התשלום, או דווח על בעיה.`, o.id, now),
+            note(o.sellerId, `"${title}" הגיע לקונה. התשלום ישוחרר אחרי אישור הקונה.`, o.id, now),
+            ...s.notifications,
+          ],
+        });
+        return { ok: true };
+      },
+
+      releasePayment: (orderId, auto = false) => {
+        const s = get();
+        const o = s.orders.find((x) => x.id === orderId);
+        if (!o) return fail('ההזמנה לא נמצאה');
+        if (o.status !== 'delivered') return fail('אי אפשר לשחרר תשלום במצב הנוכחי');
+        if (!auto && o.buyerId !== s.currentUserId) return fail('רק הקונה יכול לשחרר תשלום');
+        const now = Date.now();
+        const seller = s.users[o.sellerId];
+        const title = s.items.find((i) => i.id === o.itemId)?.title ?? 'הפריט';
+        const tx: Transaction = { id: uid(), userId: seller.id, type: 'income', amount: o.itemPrice, text: `הכנסה: ${title}`, orderId: o.id, at: now };
+        const notes = [note(seller.id, `💸 ₪${o.itemPrice.toLocaleString('he-IL')} שוחררו לארנק שלך עבור "${title}"${auto ? ' (שחרור אוטומטי)' : ''}`, o.id, now)];
+        if (auto) notes.push(note(o.buyerId, `התשלום עבור "${title}" שוחרר אוטומטית למוכר אחרי 48 שעות.`, o.id, now));
+        set({
+          users: { ...s.users, [seller.id]: { ...seller, wallet: { available: seller.wallet.available + o.itemPrice, pending: seller.wallet.pending - o.itemPrice } } },
+          orders: s.orders.map((x) => (x.id === orderId ? advance(x, 'completed', now, auto ? 'שחרור אוטומטי' : undefined, { autoReleaseAt: undefined }) : x)),
+          transactions: [tx, ...s.transactions],
+          notifications: [...notes, ...s.notifications],
+        });
+        return { ok: true };
+      },
+
+      openDispute: (orderId, d) => {
+        const s = get();
+        const o = s.orders.find((x) => x.id === orderId);
+        if (!o) return fail('ההזמנה לא נמצאה');
+        if (o.status !== 'delivered') return fail('אי אפשר לפתוח מחלוקת במצב הנוכחי');
+        if (o.buyerId !== s.currentUserId) return fail('רק הקונה יכול לדווח על בעיה');
+        const now = Date.now();
+        const title = s.items.find((i) => i.id === o.itemId)?.title ?? 'הפריט';
+        set({
+          orders: s.orders.map((x) => (x.id === orderId ? advance(x, 'disputed', now, d.reason, { dispute: d, autoReleaseAt: undefined }) : x)),
+          notifications: [note(o.sellerId, `הקונה דיווח על בעיה ב"${title}" (${d.reason}). התשלום מוקפא עד לבירור.`, o.id, now), ...s.notifications],
+        });
+        return { ok: true };
+      },
+
+      resolveRefund: (orderId) => {
+        const s = get();
+        const o = s.orders.find((x) => x.id === orderId);
+        if (!o) return fail('ההזמנה לא נמצאה');
+        if (o.status !== 'disputed') return fail('אין מחלוקת פתוחה להזמנה');
+        const now = Date.now();
+        const buyer = s.users[o.buyerId];
+        const seller = s.users[o.sellerId];
+        const title = s.items.find((i) => i.id === o.itemId)?.title ?? 'הפריט';
+        const tx: Transaction = { id: uid(), userId: buyer.id, type: 'refund', amount: o.total, text: `החזר: ${title}`, orderId: o.id, at: now };
+        set({
+          users: {
+            ...s.users,
+            [buyer.id]: { ...buyer, wallet: { ...buyer.wallet, available: buyer.wallet.available + o.total } },
+            [seller.id]: { ...seller, wallet: { ...seller.wallet, pending: seller.wallet.pending - o.itemPrice } },
+          },
+          orders: s.orders.map((x) => (x.id === orderId ? advance(x, 'refunded', now, 'צוות ReWear אישר החזר') : x)),
+          transactions: [tx, ...s.transactions],
+          notifications: [
+            note(buyer.id, `₪${o.total.toLocaleString('he-IL')} הוחזרו לארנק שלך עבור "${title}".`, o.id, now),
+            note(seller.id, `המחלוקת על "${title}" נפתרה לטובת הקונה וההזמנה בוטלה.`, o.id, now),
+            ...s.notifications,
+          ],
+        });
+        return { ok: true };
+      },
+
+      rateSeller: (orderId, stars, comment) => {
+        const s = get();
+        const o = s.orders.find((x) => x.id === orderId);
+        if (!o) return fail('ההזמנה לא נמצאה');
+        if (o.status !== 'completed') return fail('אפשר לדרג רק אחרי שחרור התשלום');
+        if (o.rated) return fail('כבר דירגת את המוכר בהזמנה הזו');
+        if (o.buyerId !== s.currentUserId) return fail('רק הקונה יכול לדרג');
+        if (!(stars >= 1 && stars <= 5)) return fail('נא לבחור דירוג בין 1 ל-5');
+        const now = Date.now();
+        const seller = s.users[o.sellerId];
+        const count = seller.ratingCount + 1;
+        const avg = (seller.rating * seller.ratingCount + stars) / count;
+        set({
+          users: { ...s.users, [seller.id]: { ...seller, rating: avg, ratingCount: count } },
+          orders: s.orders.map((x) => (x.id === orderId ? { ...x, rated: true, rating: { stars, comment } } : x)),
+          notifications: [note(seller.id, `${s.users[o.buyerId].name} דירגה אותך ${stars}★${comment ? `: "${comment}"` : ''}`, o.id, now), ...s.notifications],
+        });
+        return { ok: true };
       },
 
       markRead: (id) => set((s) => ({ notifications: s.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)) })),

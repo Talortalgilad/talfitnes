@@ -1,4 +1,6 @@
 import { Route, Routes, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useStore } from './store/useStore';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import Toast from './components/Toast';
@@ -16,6 +18,15 @@ import Notifications from './pages/Notifications';
 
 export default function App() {
   const { pathname } = useLocation();
+  // Auto-release: a delivered order whose 48h window has passed is released to the seller.
+  useEffect(() => {
+    const t = setInterval(() => {
+      const st = useStore.getState();
+      const due = st.orders.find((o) => o.status === 'delivered' && o.autoReleaseAt && o.autoReleaseAt <= Date.now());
+      if (due) st.releasePayment(due.id, true);
+    }, 1000);
+    return () => clearInterval(t);
+  }, []);
   const hideNav = pathname.startsWith('/item/') || pathname.startsWith('/checkout/');
   return (
     <div className="mx-auto min-h-screen w-full max-w-[480px] bg-bg pb-24 shadow-soft md:my-6 md:min-h-[calc(100vh-3rem)] md:rounded-3xl">

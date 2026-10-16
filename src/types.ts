@@ -51,6 +51,7 @@ export interface Order {
   autoReleaseAt?: number;
   dispute?: { reason: string; details: string; photo?: string };
   rated?: boolean;
+  rating?: { stars: number; comment: string };
 }
 
 export interface Notification {
