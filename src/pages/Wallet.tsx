@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useStore, useCurrentUser } from '../store/useStore';
 import { fmt } from '../lib/money';
 import EmptyState from '../components/EmptyState';
@@ -10,6 +10,9 @@ export default function Wallet() {
   const txs = useMemo(() => allTx.filter((t) => t.userId === me.id), [allTx, me.id]);
   const topUp = useStore((s) => s.topUp);
   const show = useToast((s) => s.show);
+  const walletViewed = useStore((s) => s.guideWalletViewed);
+  const step4 = useStore((s) => s.guide.done[3]);
+  useEffect(() => { walletViewed(); }, [me.id, step4, walletViewed]);
   return (
     <div className="space-y-4 p-4">
       <div className="rounded-2xl bg-primary p-5 text-white shadow-soft">

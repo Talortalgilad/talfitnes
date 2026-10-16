@@ -45,6 +45,7 @@ export default function ItemPage() {
           <div className="text-3xl font-black">{fmt(item.price)}</div>
           <h1 className="mt-1 text-lg font-bold">{item.title}</h1>
           <div className="mt-2 flex flex-wrap gap-2 text-xs">
+            {item.relisted && !sold && <span className="rounded-full bg-escrow px-3 py-1 font-bold text-white">חזר למכירה</span>}
             {[item.brand, `מידה ${item.size}`, item.condition, item.category].map((t) => <span key={t} className="rounded-full bg-primary-soft px-3 py-1 text-primary-hover">{t}</span>)}
           </div>
         </div>

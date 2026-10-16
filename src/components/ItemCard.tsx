@@ -17,6 +17,7 @@ export default function ItemCard({ item }: { item: Item }) {
       <Link to={`/item/${item.id}`} className="block" aria-label={item.title}>
         <div className="relative">
           <SafeImage src={item.images[0]} category={item.category} alt={item.title} className={`aspect-[4/5] w-full ${sold ? 'opacity-50' : ''}`} />
+          {item.relisted && !sold && <span className="absolute right-2 top-2 rounded-full bg-escrow px-2 py-0.5 text-[11px] font-bold text-white shadow">חזר למכירה</span>}
           {sold && <span className="absolute inset-x-0 top-1/2 mx-auto w-fit -translate-y-1/2 rounded-full bg-ink px-3 py-1 text-xs font-bold text-white">נמכר</span>}
         </div>
         <div className="space-y-0.5 p-3">

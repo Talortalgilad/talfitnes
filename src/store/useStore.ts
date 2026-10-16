@@ -19,10 +19,24 @@ const safeStorage = {
   },
 };
 
+export interface GuideState {
+  listedItemId: string | null; // the item Dani listed in step 1
+  orderId: string | null;      // the order Noa created in step 2
+  done: boolean[];             // 5 steps, derived from real store actions
+  celebrated: boolean;
+}
+export const defaultGuide = (): GuideState => ({ listedItemId: null, orderId: null, done: [false, false, false, false, false], celebrated: false });
+const mark = (g: GuideState, i: number, extra: Partial<GuideState> = {}): GuideState => ({ ...g, ...extra, done: g.done.map((d, n) => (n === i ? true : d)) });
+
 type Res = { ok: true } | { ok: false; error: string };
 
 interface State extends AppData {
   currentUserId: UserId;
+  guide: GuideState;
+  onboardingSeen: boolean;
+  setOnboardingSeen: (v: boolean) => void;
+  guideWalletViewed: () => void;
+  celebrateGuide: () => void;
   switchUser: (id: UserId) => void;
   toggleLike: (itemId: string) => void;
   topUp: () => void;
@@ -40,6 +54,12 @@ interface State extends AppData {
 }
 
 const uid = () => Math.random().toString(36).slice(2, 10);
+// Noa buying the item Dani listed in the guide (or re-buying it after a refund) binds the guide to that order.
+const buyerIsGuide = (s: AppData & { guide: GuideState }, buyerId: UserId, itemId: string) => {
+  if (buyerId !== 'noa' || s.guide.listedItemId !== itemId) return false;
+  const prev = s.orders.find((o) => o.id === s.guide.orderId);
+  return !prev || prev.status === 'refunded';
+};
 const fail = (error: string): Res => ({ ok: false, error });
 
 const advance = (o: Order, status: OrderStatus, now: number, note?: string, extra: Partial<Order> = {}): Order => ({
@@ -52,6 +72,15 @@ export const useStore = create<State>()(
     (set, get) => ({
       ...createSeed(),
       currentUserId: 'noa',
+      guide: defaultGuide(),
+      onboardingSeen: false,
+      setOnboardingSeen: (v) => set({ onboardingSeen: v }),
+      celebrateGuide: () => set((s) => ({ guide: { ...s.guide, celebrated: true } })),
+      // Step 5: Dani opens his wallet after the payment was released (the only step that is a "view").
+      guideWalletViewed: () => {
+        const s = get();
+        if (s.currentUserId === 'dani' && s.guide.done[3] && !s.guide.done[4]) set({ guide: mark(s.guide, 4) });
+      },
 
       switchUser: (id) => set({ currentUserId: id }),
 
@@ -72,7 +101,8 @@ export const useStore = create<State>()(
       listItem: (data) => {
         const s = get();
         const item: Item = { ...data, id: `item-${uid()}`, sellerId: s.currentUserId, status: 'active', createdAt: Date.now(), likes: [] };
-        set({ items: [item, ...s.items] });
+        const guide = s.currentUserId === 'dani' && !s.guide.listedItemId ? mark(s.guide, 0, { listedItemId: item.id }) : s.guide;
+        set({ items: [item, ...s.items], guide });
         return item.id;
       },
 
@@ -105,7 +135,8 @@ export const useStore = create<State>()(
             [buyer.id]: { ...buyer, wallet: { ...buyer.wallet, available: buyer.wallet.available - t.total } },
             [seller.id]: { ...seller, wallet: { ...seller.wallet, pending: seller.wallet.pending + t.itemPrice } },
           },
-          items: s.items.map((i) => (i.id === itemId ? { ...i, status: 'sold' } : i)),
+          items: s.items.map((i) => (i.id === itemId ? { ...i, status: 'sold', relisted: false } : i)),
+          guide: buyerIsGuide(s, buyer.id, itemId) ? { ...mark(s.guide, 1, { orderId: order.id }), done: [s.guide.done[0], true, false, false, false] } : s.guide,
           orders: [order, ...s.orders],
           notifications: [note, ...s.notifications],
           transactions: [tx, ...s.transactions],
@@ -125,6 +156,7 @@ export const useStore = create<State>()(
         const title = s.items.find((i) => i.id === o.itemId)?.title ?? 'הפריט';
         set({
           orders: s.orders.map((x) => (x.id === orderId ? advance(x, 'shipped', now, tracking, { trackingNumber: tracking }) : x)),
+          guide: s.guide.orderId === orderId ? mark(s.guide, 2) : s.guide,
           notifications: [note(o.buyerId, `"${title}" נשלח אליך! מספר מעקב ${tracking}`, o.id, now), ...s.notifications],
         });
         return { ok: true };
@@ -163,6 +195,7 @@ export const useStore = create<State>()(
         set({
           users: { ...s.users, [seller.id]: { ...seller, wallet: { available: seller.wallet.available + o.itemPrice, pending: seller.wallet.pending - o.itemPrice } } },
           orders: s.orders.map((x) => (x.id === orderId ? advance(x, 'completed', now, auto ? 'שחרור אוטומטי' : undefined, { autoReleaseAt: undefined }) : x)),
+          guide: s.guide.orderId === orderId ? mark(s.guide, 3) : s.guide,
           transactions: [tx, ...s.transactions],
           notifications: [...notes, ...s.notifications],
         });
@@ -201,10 +234,11 @@ export const useStore = create<State>()(
             [seller.id]: { ...seller, wallet: { ...seller.wallet, pending: seller.wallet.pending - o.itemPrice } },
           },
           orders: s.orders.map((x) => (x.id === orderId ? advance(x, 'refunded', now, 'צוות ReWear אישר החזר') : x)),
+          items: s.items.map((i) => (i.id === o.itemId ? { ...i, status: 'active', relisted: true } : i)),
           transactions: [tx, ...s.transactions],
           notifications: [
             note(buyer.id, `₪${o.total.toLocaleString('he-IL')} הוחזרו לארנק שלך עבור "${title}".`, o.id, now),
-            note(seller.id, `המחלוקת על "${title}" נפתרה לטובת הקונה וההזמנה בוטלה.`, o.id, now),
+            note(seller.id, `המחלוקת על "${title}" נפתרה לטובת הקונה וההזמנה בוטלה. הפריט חזר למכירה.`, o.id, now),
             ...s.notifications,
           ],
         });
@@ -234,7 +268,7 @@ export const useStore = create<State>()(
       markRead: (id) => set((s) => ({ notifications: s.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)) })),
       markAllRead: () => set((s) => ({ notifications: s.notifications.map((n) => (n.userId === s.currentUserId ? { ...n, read: true } : n)) })),
 
-      resetDemo: () => set({ ...createSeed(), currentUserId: 'noa' }),
+      resetDemo: () => set({ ...createSeed(), currentUserId: 'noa', guide: defaultGuide(), onboardingSeen: false }),
     }),
     {
       name: 'rewear-store-v1',
@@ -245,7 +279,7 @@ export const useStore = create<State>()(
         const ok = p && p.users && p.users.noa && p.users.noa.address && Array.isArray(p.items) && Array.isArray(p.orders) && Array.isArray(p.notifications) && Array.isArray(p.transactions) && p.currentUserId && p.users[p.currentUserId];
         return ok ? { ...current, ...p } : current;
       },
-      partialize: (s) => ({ users: s.users, items: s.items, orders: s.orders, notifications: s.notifications, transactions: s.transactions, orderSeq: s.orderSeq, currentUserId: s.currentUserId }) as State,
+      partialize: (s) => ({ users: s.users, items: s.items, orders: s.orders, notifications: s.notifications, transactions: s.transactions, orderSeq: s.orderSeq, currentUserId: s.currentUserId, guide: s.guide, onboardingSeen: s.onboardingSeen }) as State,
     },
   ),
 );

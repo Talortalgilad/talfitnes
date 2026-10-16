@@ -31,6 +31,7 @@ export interface Item {
   status: 'active' | 'sold';
   createdAt: number;
   likes: UserId[];
+  relisted?: boolean; // returned to sale after a refund
 }
 
 export type OrderStatus = 'paid_escrow' | 'shipped' | 'delivered' | 'completed' | 'disputed' | 'refunded';
