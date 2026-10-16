@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: { DEFAULT: '#5B8A72', hover: '#4A7360', soft: '#E8F0EC' },
+        primary: { DEFAULT: '#4A7360', hover: '#3D6150', soft: '#E8F0EC' },
         bg: '#FAFAF7',
         ink: { DEFAULT: '#1F2937', soft: '#6B7280' },
         escrow: { DEFAULT: '#D97706', dark: '#B45309', soft: '#FEF3C7' },
