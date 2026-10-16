@@ -8,7 +8,7 @@ import { Avatar } from '../components/UserSwitcher';
 import EmptyState from '../components/EmptyState';
 import type { Badge } from '../types';
 
-const badgeText: Record<Badge, string> = { verified: 'מאומת ✓', fast_shipper: 'שולח מהר ⚡', top_seller: 'מוכר/ת מובילה 🏆' };
+const badgeText: Record<Badge, string> = { verified: 'מאומת ✓', fast_shipper: 'שולח מהר ⚡', top_seller: 'מוכרת מובילה 🏆' };
 
 export default function ItemPage() {
   const { id } = useParams();
@@ -19,7 +19,7 @@ export default function ItemPage() {
   const [idx, setIdx] = useState(0);
   const track = useRef<HTMLDivElement>(null);
 
-  if (!item || !seller) return <EmptyState emoji="🤷" text="הפריט לא נמצא" />;
+  if (!item || !seller) return <EmptyState emoji="🤷" title="הפריט לא נמצא" text="ייתכן שהפריט הוסר." cta={{ label: 'חזרה לפיד', to: '/' }} />;
 
   const own = item.sellerId === me;
   const sold = item.status === 'sold';
@@ -29,7 +29,7 @@ export default function ItemPage() {
       <div className="relative">
         <div ref={track} onScroll={(e) => { const el = e.currentTarget; setIdx(Math.round(Math.abs(el.scrollLeft) / el.clientWidth)); }} className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto">
           {item.images.map((src, n) => (
-            <SafeImage key={n} src={src} category={item.category} alt={`${item.title} ${n + 1}`} className="aspect-square w-full shrink-0 snap-center" />
+            <SafeImage key={n} src={src} category={item.category} alt={`${item.title} ${n + 1}`} w={800} priority={n === 0} className="aspect-square w-full shrink-0 snap-center" />
           ))}
         </div>
         <button onClick={() => nav(-1)} aria-label="חזרה" className="tap absolute right-3 top-3 flex items-center justify-center rounded-full bg-white/90 shadow"><ArrowRight size={20} /></button>
@@ -45,7 +45,7 @@ export default function ItemPage() {
           <div className="text-3xl font-black">{fmt(item.price)}</div>
           <h1 className="mt-1 text-lg font-bold">{item.title}</h1>
           <div className="mt-2 flex flex-wrap gap-2 text-xs">
-            {item.relisted && !sold && <span className="rounded-full bg-escrow px-3 py-1 font-bold text-white">חזר למכירה</span>}
+            {item.relisted && !sold && <span className="rounded-full bg-escrow-dark px-3 py-1 font-bold text-white">חזר למכירה</span>}
             {[item.brand, `מידה ${item.size}`, item.condition, item.category].map((t) => <span key={t} className="rounded-full bg-primary-soft px-3 py-1 text-primary-hover">{t}</span>)}
           </div>
         </div>
@@ -56,13 +56,13 @@ export default function ItemPage() {
           <div className="flex-1">
             <div className="font-bold">{seller.name}</div>
             <div className="text-xs text-ink-soft">{seller.city}</div>
-            <div className="mt-1 flex flex-wrap gap-1">{seller.badges.map((b) => <span key={b} className="rounded-full bg-escrow-soft px-2 py-0.5 text-[11px] text-escrow">{badgeText[b]}</span>)}</div>
+            <div className="mt-1 flex flex-wrap gap-1">{seller.badges.map((b) => <span key={b} className="rounded-full bg-escrow-soft px-2 py-0.5 text-[11px] text-escrow-dark">{badgeText[b]}</span>)}</div>
           </div>
-          <div className="flex items-center gap-1 text-sm font-bold"><Star size={16} className="fill-escrow text-escrow" aria-hidden />{seller.rating.toFixed(1)}<span className="text-xs font-normal text-ink-soft">({seller.ratingCount})</span></div>
+          <div className="flex items-center gap-1 text-sm font-bold"><Star size={16} className="fill-escrow text-escrow-dark" aria-hidden />{seller.rating.toFixed(1)}<span className="text-xs font-normal text-ink-soft">({seller.ratingCount})</span></div>
         </div>
 
         <div className="flex gap-3 rounded-2xl border border-escrow/30 bg-escrow-soft p-4">
-          <ShieldCheck size={26} className="shrink-0 text-escrow" aria-hidden />
+          <ShieldCheck size={26} className="shrink-0 text-escrow-dark" aria-hidden />
           <div>
             <div className="font-bold">הגנת קונה ReWear 🛡️</div>
             <p className="mt-1 text-sm leading-snug text-ink-soft">הכסף שלך מוחזק בנאמנות ומשתחרר למוכר רק אחרי שאישרת שהפריט הגיע ותקין.</p>

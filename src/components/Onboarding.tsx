@@ -38,7 +38,7 @@ export default function Onboarding() {
   const s = slides[i];
 
   return (
-    <div className="fixed inset-0 z-[70] flex justify-center bg-[#EEF1EC]" role="dialog" aria-modal="true" aria-label="הכירו את ReWear">
+    <div className="fixed inset-0 z-[70] flex justify-center bg-[#EEF1EC]" role="dialog" aria-modal="true" aria-label="היכרות עם ReWear">
       <div className="relative flex h-full w-full max-w-[480px] flex-col bg-bg px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4">
         <div className="flex justify-start">
           {!last && <button onClick={() => setSeen(true)} className="tap px-2 text-sm font-medium text-ink-soft">דלג</button>}

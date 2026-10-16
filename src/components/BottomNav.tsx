@@ -29,7 +29,7 @@ export default function BottomNav() {
               }
             >
               <Icon size={main ? 28 : 22} aria-hidden />
-              {to === '/orders' && pending > 0 && <span data-testid="nav-badge" className="absolute -top-0.5 right-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-escrow px-1 text-[10px] font-bold text-white">{pending}</span>}
+              {to === '/orders' && pending > 0 && <span data-testid="nav-badge" className="absolute -top-0.5 right-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-escrow-dark px-1 text-[10px] font-bold text-white">{pending}</span>}
               {!main && label}
             </NavLink>
           </li>

@@ -32,15 +32,15 @@ export default function Checkout() {
   if (phase === 'done') {
     return (
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-4 px-6 py-20 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-escrow-soft"><Lock size={36} className="text-escrow" aria-hidden /></div>
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-escrow-soft"><Lock size={36} className="text-escrow-dark" aria-hidden /></div>
         <h1 className="text-2xl font-black">התשלום הועבר לנאמנות 🔒</h1>
-        <p className="text-sm text-ink-soft">הכסף מוחזק אצלנו ויועבר למוכר רק אחרי שתאשר שהפריט הגיע ותקין.</p>
+        <p className="text-sm text-ink-soft">הכסף מוחזק אצלנו ויועבר למוכר רק אחרי אישור שהפריט הגיע ותקין.</p>
         <button onClick={() => nav(`/orders/${orderId}`, { replace: true })} className="tap w-full rounded-2xl bg-primary py-3 font-bold text-white hover:bg-primary-hover">למעקב ההזמנה</button>
       </motion.div>
     );
   }
 
-  if (!item) return <EmptyState emoji="🤷" text="הפריט לא נמצא" />;
+  if (!item) return <EmptyState emoji="🤷" title="הפריט לא נמצא" text="ייתכן שהפריט הוסר." cta={{ label: 'חזרה לפיד', to: '/' }} />;
 
   const t = calcTotals(item.price);
   const own = item.sellerId === me.id;
@@ -73,7 +73,7 @@ export default function Checkout() {
       </div>
 
       <div className="flex gap-3 rounded-2xl bg-white p-3 shadow-soft">
-        <SafeImage src={item.images[0]} category={item.category} alt={item.title} className="h-20 w-20 shrink-0 rounded-xl" />
+        <SafeImage src={item.images[0]} category={item.category} alt={item.title} w={200} className="h-20 w-20 shrink-0 rounded-xl" />
         <div><div className="font-bold">{item.title}</div><div className="text-xs text-ink-soft">{item.brand} · מידה {item.size}</div><div className="mt-1 font-black">{fmt(item.price)}</div></div>
       </div>
 

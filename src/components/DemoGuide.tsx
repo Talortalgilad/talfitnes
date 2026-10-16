@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Check, Compass, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
-import confetti from 'canvas-confetti';
+import { fireConfetti } from '../lib/confetti';
 import { useStore } from '../store/useStore';
 import type { UserId } from '../types';
 import Sheet from './Sheet';
@@ -32,7 +32,7 @@ export default function DemoGuide() {
   useEffect(() => {
     if (allDone && !guide.celebrated) {
       setOpen(false);
-      confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
+      void fireConfetti(true);
     }
   }, [allDone, guide.celebrated]);
 
@@ -53,10 +53,10 @@ export default function DemoGuide() {
           onClick={() => setOpen(true)}
           aria-label={`מדריך דמו, ${count} מתוך ${STEPS.length} שלבים הושלמו`}
           data-testid="guide-fab"
-          className="pointer-events-auto flex h-10 items-center gap-1.5 rounded-full bg-ink px-3 text-xs font-bold text-white shadow-soft"
+          className="pointer-events-auto flex h-11 items-center gap-1.5 rounded-full bg-ink px-3 text-xs font-bold text-white shadow-soft"
         >
           <Compass size={16} aria-hidden />מדריך דמו
-          <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${allDone ? 'bg-ok' : 'bg-white/20'}`}>{count}/{STEPS.length}</span>
+          <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${allDone ? 'bg-ok-dark' : 'bg-white/20'}`}>{count}/{STEPS.length}</span>
         </button>
       </div>
 

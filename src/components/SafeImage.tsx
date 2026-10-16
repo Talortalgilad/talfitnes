@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Footprints, Layers, Shirt, Sparkles, Watch, Wind } from 'lucide-react';
 import type { Category } from '../types';
+import { sized } from '../lib/image';
 
 const icons = { 'חולצות': Shirt, 'מכנסיים': Layers, 'שמלות': Sparkles, 'מעילים': Wind, 'נעליים': Footprints, 'אקססוריז': Watch };
 
+interface Props { src?: string; category: Category; alt: string; className?: string; w?: number; priority?: boolean }
+
 // Image with a soft gradient + category icon fallback (never a broken-image icon).
-export default function SafeImage({ src, category, alt, className = '' }: { src?: string; category: Category; alt: string; className?: string }) {
+export default function SafeImage({ src, category, alt, className = '', w = 400, priority = false }: Props) {
   const [failed, setFailed] = useState(false);
   const Icon = icons[category];
   if (!src || failed) {
@@ -15,5 +18,11 @@ export default function SafeImage({ src, category, alt, className = '' }: { src?
       </div>
     );
   }
-  return <img src={src} alt={alt} loading="lazy" onError={() => setFailed(true)} className={`object-cover ${className}`} />;
+  return (
+    <img
+      src={sized(src, w)} alt={alt} decoding="async"
+      loading={priority ? 'eager' : 'lazy'} {...(priority ? { fetchPriority: 'high' as const } : {})}
+      onError={() => setFailed(true)} className={`object-cover ${className}`}
+    />
+  );
 }

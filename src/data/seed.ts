@@ -43,7 +43,7 @@ export function createSeed(): AppData {
     mk(11, 'dani', 'חולצת פסים ארוכה', 'חולצות', 'S', 'Fox', 'טוב', 40, '1576566588028-4147f3842f27', 'חולצת פסים בשרוול ארוך, מתאימה לכל עונה.'),
     mk(12, 'maya', 'מכנסי קרגו ירוקים', 'מכנסיים', 'M', 'H&M', 'כמו חדש', 85, '1473966968600-fa801b869a1a', 'מכנסי קרגו בצבע זית, כיסים רבים ובד חזק.'),
     mk(13, 'dani', 'צעיף צמר אפור', 'אקססוריז', 'ONE', 'Castro', 'טוב מאוד', 55, '1520903920243-00d872a2d1c9', 'צעיף צמר רך וחם, באורך נדיב.'),
-    mk(14, 'dani', 'חולצת טי אוברסייז', 'חולצות', 'L', 'Nike', 'כמו חדש', 120, '1503341504253-dff4815485f1', 'חולצת טי אוברסייז, מכורה כבר – מופיעה כדוגמה להזמנה פעילה.', 'sold'),
+    mk(14, 'dani', 'חולצת טי אוברסייז', 'חולצות', 'L', 'Nike', 'כמו חדש', 120, '1503341504253-dff4815485f1', 'חולצת טי אוברסייז רחבה ונעימה, במצב כמו חדש.', 'sold'),
   ];
 
   const sold = items[13];
@@ -60,9 +60,9 @@ export function createSeed(): AppData {
   };
 
   const notifications: Notification[] = [
-    { id: 'n1', userId: 'noa', text: 'החבילה של "חולצת טי אוברסייז" הגיעה. אשרי שהכול תקין כדי לשחרר את התשלום.', orderId: order.id, read: false, at: now - 2 * HOUR },
+    { id: 'n1', userId: 'noa', text: 'החבילה של "חולצת טי אוברסייז" הגיעה. אפשר לאשר שהכול תקין ולשחרר את התשלום.', orderId: order.id, read: false, at: now - 2 * HOUR },
     { id: 'n2', userId: 'dani', text: 'החבילה הגיעה לנועה. התשלום ישוחרר אחרי אישור הקונה.', orderId: order.id, read: false, at: now - 2 * HOUR },
-    { id: 'n3', userId: 'maya', text: 'ברוכה הבאה ל-ReWear! התחילי להעלות פריטים למכירה.', read: false, at: now - 30 * HOUR },
+    { id: 'n3', userId: 'maya', text: 'ברוכים הבאים ל-ReWear! אפשר להתחיל להעלות פריטים למכירה.', read: false, at: now - 30 * HOUR },
   ];
 
   const transactions: Transaction[] = [

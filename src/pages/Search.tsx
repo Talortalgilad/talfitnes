@@ -38,9 +38,9 @@ export default function Search() {
           <SearchIcon size={18} className="absolute start-3 top-1/2 -translate-y-1/2 text-ink-soft" aria-hidden />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="חיפוש לפי שם או מותג" aria-label="חיפוש" className={`${field} ps-10`} />
         </label>
-        <button onClick={() => setOpen((o) => !o)} aria-label="פילטרים" aria-expanded={open} className={`tap relative flex items-center justify-center rounded-xl px-3 shadow-sm ${open ? 'bg-primary text-white' : 'bg-white'}`}>
+        <button onClick={() => setOpen((o) => !o)} aria-label="סינון" aria-expanded={open} className={`tap relative flex items-center justify-center rounded-xl px-3 shadow-sm ${open ? 'bg-primary text-white' : 'bg-white'}`}>
           <SlidersHorizontal size={18} aria-hidden />
-          {activeFilters > 0 && <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-escrow text-[10px] font-bold text-white">{activeFilters}</span>}
+          {activeFilters > 0 && <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-escrow-dark text-[10px] font-bold text-white">{activeFilters}</span>}
         </button>
       </div>
 
@@ -67,8 +67,8 @@ export default function Search() {
         <ItemGrid items={results} />
       ) : (
         <div>
-          <EmptyState emoji="🔍" text="לא מצאנו פריטים שמתאימים לחיפוש. נסו לשנות או לנקות את הפילטרים." />
-          <div className="flex justify-center"><button onClick={clear} className="tap flex items-center gap-1 rounded-full bg-primary px-4 text-sm font-medium text-white"><X size={14} aria-hidden />ניקוי חיפוש</button></div>
+          <EmptyState emoji="🔍" title="לא נמצאו תוצאות" text="לא מצאנו פריטים שמתאימים לחיפוש. אפשר לשנות או לנקות את הסינון." />
+          <div className="flex justify-center"><button onClick={clear} className="tap flex items-center gap-1 rounded-full bg-primary px-4 text-sm font-medium text-white"><X size={14} aria-hidden />נקה חיפוש</button></div>
         </div>
       )}
     </div>

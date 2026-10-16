@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import type { Order } from '../types';
 
 type StepState = 'done' | 'current' | 'future' | 'danger' | 'refund';
@@ -38,6 +38,7 @@ const fmtTime = (at?: number) => {
 };
 
 export default function EscrowTimeline({ order }: { order: Order }) {
+  const reduce = useReducedMotion();
   const st = states(order.status);
   const at = (s: Order['status'][]) => [...order.timeline].reverse().find((e) => s.includes(e.status))?.at;
   const times = [at(['paid_escrow']), at(['paid_escrow']), at(['shipped']), at(['delivered']), at(['completed', 'disputed', 'refunded'])];
@@ -65,11 +66,11 @@ export default function EscrowTimeline({ order }: { order: Order }) {
           <li key={i} className="flex gap-3" aria-current={s === 'current' ? 'step' : undefined}>
             <div className="flex flex-col items-center self-stretch">
               <div className="relative flex h-9 w-9 shrink-0 items-center justify-center">
-                {ring && <motion.span className={`absolute inset-0 rounded-full ${ring}`} animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 1.6, repeat: Infinity }} />}
+                {ring && !reduce && <motion.span className={`absolute inset-0 rounded-full ${ring}`} animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 1.6, repeat: Infinity }} />}
                 <motion.span
                   className={`relative flex h-9 w-9 items-center justify-center rounded-full text-base ${dot}`}
-                  initial={{ scale: 0.6 }} animate={s === 'current' || s === 'danger' ? { scale: [1, 1.08, 1] } : { scale: 1 }}
-                  transition={s === 'current' || s === 'danger' ? { duration: 1.6, repeat: Infinity } : { type: 'spring', delay: i * 0.12 }}
+                  initial={{ scale: 0.6 }} animate={!reduce && (s === 'current' || s === 'danger') ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+                  transition={!reduce && (s === 'current' || s === 'danger') ? { duration: 1.6, repeat: Infinity } : { type: 'spring', delay: i * 0.12 }}
                 >
                   {s === 'done' ? <Check size={18} strokeWidth={3} aria-hidden /> : <span aria-hidden>{step.emoji}</span>}
                 </motion.span>
@@ -83,7 +84,7 @@ export default function EscrowTimeline({ order }: { order: Order }) {
             <div className="pb-5 pt-1">
               <div className={`font-bold ${s === 'future' ? 'text-gray-400' : s === 'danger' ? 'text-bad' : ''}`}>{step.label}</div>
               {s !== 'future' && times[i] && <div className="text-xs text-ink-soft">{fmtTime(times[i])}</div>}
-              {s === 'current' && currentText[order.status] && <div className="mt-0.5 text-xs font-medium text-escrow">{currentText[order.status]}</div>}
+              {s === 'current' && currentText[order.status] && <div className="mt-0.5 text-xs font-medium text-escrow-dark">{currentText[order.status]}</div>}
               {s === 'danger' && <div className="mt-0.5 text-xs font-medium text-bad">התשלום מוקפא עד לבירור</div>}
               {i === 2 && order.trackingNumber && s !== 'future' && <div className="text-xs text-ink-soft" dir="ltr">{order.trackingNumber}</div>}
             </div>

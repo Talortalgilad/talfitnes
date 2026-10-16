@@ -4,12 +4,14 @@ import { useStore } from '../store/useStore';
 import { CATEGORIES, type Category } from '../types';
 import ItemGrid from '../components/ItemGrid';
 import EmptyState from '../components/EmptyState';
+import { ItemGridSkeleton, useSkeleton } from '../components/Skeleton';
 
 type Sort = 'new' | 'asc' | 'desc';
 
 export default function Home() {
   const items = useStore((s) => s.items);
   const [cat, setCat] = useState<Category | null>(null);
+  const loading = useSkeleton();
   const [sort, setSort] = useState<Sort>('new');
 
   const list = useMemo(() => {
@@ -35,7 +37,7 @@ export default function Home() {
       </div>
 
       <div className="flex items-center justify-between px-4 text-sm">
-        <span className="text-ink-soft">{list.length} פריטים</span>
+        <span className="text-ink-soft">{loading ? '' : `${list.length} פריטים`}</span>
         <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label="מיון" className="tap rounded-xl bg-white px-3 shadow-sm">
           <option value="new">חדש ביותר</option>
           <option value="asc">מחיר: מהנמוך לגבוה</option>
@@ -43,7 +45,7 @@ export default function Home() {
         </select>
       </div>
 
-      {list.length ? <ItemGrid items={list} /> : <EmptyState emoji="👗" text="אין עדיין פריטים בקטגוריה הזו" />}
+      {loading ? <ItemGridSkeleton /> : list.length ? <ItemGrid items={list} /> : <EmptyState emoji="👗" title="אין כאן פריטים עדיין" text="אין עדיין פריטים בקטגוריה הזו." cta={{ label: 'הצג את כל הפריטים', onClick: () => setCat(null) }} />}
     </div>
   );
 }

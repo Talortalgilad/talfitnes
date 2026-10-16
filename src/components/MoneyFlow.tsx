@@ -48,7 +48,7 @@ export default function MoneyFlow({ order, buyerName, sellerName }: { order: Ord
                   {active ? (
                     <motion.div
                       layoutId={`coin-${order.id}`} transition={{ type: 'spring', stiffness: 160, damping: 18 }}
-                      className={`rounded-full px-2.5 py-1 text-sm font-black text-white shadow ${frozen ? 'bg-bad' : b.key === 'seller' ? 'bg-ok' : b.key === 'escrow' ? 'bg-escrow' : 'bg-blue-500'}`}
+                      className={`rounded-full px-2.5 py-1 text-sm font-black text-white shadow ${frozen ? 'bg-bad' : b.key === 'seller' ? 'bg-ok-dark' : b.key === 'escrow' ? 'bg-escrow-dark' : 'bg-blue-500'}`}
                       data-testid="coin"
                     >
                       {fmt(amount)}
@@ -62,7 +62,7 @@ export default function MoneyFlow({ order, buyerName, sellerName }: { order: Ord
         })}
       </div>
       <p className={`mt-3 text-center text-sm font-medium ${frozen ? 'text-bad' : 'text-ink-soft'}`}>{caption[order.status]}</p>
-      {order.status !== 'refunded' && <p className="mt-1 text-center text-xs text-ink-soft">בנוסף שולמו משלוח {fmt(order.shippingFee)} והגנת קונה {fmt(order.protectionFee)}</p>}
+      {order.status !== 'refunded' && <p className="mt-1 text-center text-xs text-ink-soft">בנוסף שולמו {fmt(order.shippingFee)} דמי משלוח ו-{fmt(order.protectionFee)} הגנת קונה</p>}
     </div>
   );
 }

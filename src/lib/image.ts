@@ -23,3 +23,9 @@ export function compressImage(file: File): Promise<string> {
     img.src = url;
   });
 }
+
+// Unsplash serves any width: ask for what the slot needs (cards 400, item page 800, thumbnails 200).
+export function sized(src: string | undefined, w: number): string | undefined {
+  if (!src || !src.includes('images.unsplash.com')) return src;
+  return /[?&]w=\d+/.test(src) ? src.replace(/([?&]w=)\d+/, `$1${w}`) : `${src}${src.includes('?') ? '&' : '?'}w=${w}`;
+}

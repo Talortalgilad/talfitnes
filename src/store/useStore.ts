@@ -125,7 +125,7 @@ export const useStore = create<State>()(
         };
         const note: Notification = {
           id: uid(), userId: seller.id, orderId: order.id, read: false, at: now,
-          text: `${buyer.name} קנתה את "${item.title}". הסכום מוחזק בנאמנות, אפשר לשלוח.`,
+          text: `"${item.title}" נקנה על ידי ${buyer.name}. הסכום מוחזק בנאמנות, אפשר לשלוח.`,
         };
         const tx: Transaction = { id: uid(), userId: buyer.id, type: 'purchase', amount: -t.total, text: `קנייה: ${item.title}`, orderId: order.id, at: now };
 
@@ -157,7 +157,7 @@ export const useStore = create<State>()(
         set({
           orders: s.orders.map((x) => (x.id === orderId ? advance(x, 'shipped', now, tracking, { trackingNumber: tracking }) : x)),
           guide: s.guide.orderId === orderId ? mark(s.guide, 2) : s.guide,
-          notifications: [note(o.buyerId, `"${title}" נשלח אליך! מספר מעקב ${tracking}`, o.id, now), ...s.notifications],
+          notifications: [note(o.buyerId, `"${title}" נשלח אליך. מספר מעקב: ${tracking}`, o.id, now), ...s.notifications],
         });
         return { ok: true };
       },
@@ -172,7 +172,7 @@ export const useStore = create<State>()(
         set({
           orders: s.orders.map((x) => (x.id === orderId ? advance(x, 'delivered', now, undefined, { autoReleaseAt: now + AUTO_RELEASE_MS }) : x)),
           notifications: [
-            note(o.buyerId, `"${title}" הגיע. אשר שהכול תקין כדי לשחרר את התשלום, או דווח על בעיה.`, o.id, now),
+            note(o.buyerId, `"${title}" הגיע. אפשר לאשר שהכול תקין ולשחרר את התשלום, או לדווח על בעיה.`, o.id, now),
             note(o.sellerId, `"${title}" הגיע לקונה. התשלום ישוחרר אחרי אישור הקונה.`, o.id, now),
             ...s.notifications,
           ],
@@ -260,7 +260,7 @@ export const useStore = create<State>()(
         set({
           users: { ...s.users, [seller.id]: { ...seller, rating: avg, ratingCount: count } },
           orders: s.orders.map((x) => (x.id === orderId ? { ...x, rated: true, rating: { stars, comment } } : x)),
-          notifications: [note(seller.id, `${s.users[o.buyerId].name} דירגה אותך ${stars}★${comment ? `: "${comment}"` : ''}`, o.id, now), ...s.notifications],
+          notifications: [note(seller.id, `קיבלת דירוג של ${stars}★ מ${s.users[o.buyerId].name}${comment ? `: "${comment}"` : ''}`, o.id, now), ...s.notifications],
         });
         return { ok: true };
       },

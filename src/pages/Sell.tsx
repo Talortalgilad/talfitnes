@@ -69,7 +69,7 @@ export default function Sell() {
       const out = await Promise.all([...files].slice(0, room).map(compressImage));
       setImages((prev) => [...prev, ...out]);
     } catch {
-      show('לא הצלחנו לקרוא את התמונה, נסו קובץ אחר', 'error');
+      show('לא הצלחנו לקרוא את התמונה. אפשר לנסות קובץ אחר.', 'error');
     } finally {
       setBusy(false);
       if (fileRef.current) fileRef.current.value = '';
@@ -130,8 +130,8 @@ export default function Sell() {
       <Field label="מחיר (₪)" error={err('price')}>
         <input type="number" inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0" className={input} />
       </Field>
-      <button type="button" onClick={() => setPrice(String(suggested))} className="tap flex w-full items-center justify-center gap-2 rounded-xl bg-escrow-soft px-3 text-sm font-medium text-escrow">
-        <Lightbulb size={16} aria-hidden />מחיר מומלץ: {fmt(suggested)} · השתמש במחיר המומלץ
+      <button type="button" onClick={() => setPrice(String(suggested))} className="tap flex w-full items-center justify-center gap-2 rounded-xl bg-escrow-soft px-3 text-sm font-medium text-escrow-dark">
+        <Lightbulb size={16} aria-hidden />מחיר מומלץ: {fmt(suggested)} · השתמש בו
       </button>
 
       <Field label="תיאור" error={err('description')}>
@@ -150,7 +150,7 @@ export default function Sell() {
         </div>
       </div>
 
-      <button type="submit" disabled={busy} className="tap w-full rounded-2xl bg-primary py-3 text-base font-bold text-white hover:bg-primary-hover disabled:opacity-60">פרסום למכירה</button>
+      <button type="submit" disabled={busy} className="tap w-full rounded-2xl bg-primary py-3 text-base font-bold text-white hover:bg-primary-hover disabled:opacity-60">פרסם למכירה</button>
     </form>
   );
 }

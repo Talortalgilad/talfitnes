@@ -7,7 +7,7 @@ export default function Header() {
   const unread = useStore((s) => s.notifications.filter((n) => n.userId === s.currentUserId && !n.read).length);
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between bg-white/90 px-4 py-3 shadow-sm backdrop-blur">
-      <Link to="/" className="flex items-center gap-1.5 text-xl font-black text-primary" aria-label="ReWear - דף הבית">
+      <Link to="/" className="tap flex items-center gap-1.5 text-xl font-black text-primary" aria-label="ReWear - דף הבית">
         <Recycle size={24} aria-hidden />
         ReWear
       </Link>
